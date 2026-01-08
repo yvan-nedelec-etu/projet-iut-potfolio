@@ -74,6 +74,8 @@ def chunk_markdown(
     sections: list[tuple[str, str]] = []  # (heading_path, section_text)
 
     def flush_section():
+        """Enregistre la section courante (si non vide) puis réinitialise le buffer."""
+
         nonlocal current_buf
         text = "\n".join(current_buf).strip()
         if text:
@@ -99,15 +101,28 @@ def chunk_markdown(
     chunks: list[Chunk] = []
 
     def emit_chunk(heading_path: str, body: str, idx: int):
+        """Ajoute un chunk à la liste en gardant des IDs stables.
+
+        Détails importants:
+        - On préfixe le texte avec le chemin de titres pour rendre la recherche
+          robuste (sinon les noms de sections/projets ne sont pas indexés).
+        - L'ID est basé sur le corps (sans prefix) pour rester stable si on
+          change le formatage du prefix plus tard.
+        - Les petits morceaux sont fusionnés si ça reste dans la même section.
+        """
+
         body = body.strip()
         if not body:
             return
+
         prefix = f"{heading_path}\n\n"
         if len(body) < min_chars and chunks:
             # Si le chunk est trop petit, on tente de le fusionner au précédent
             # quand cela reste cohérent (même source + même heading).
             prev = chunks[-1]
             if prev.metadata.get("source") == source and prev.metadata.get("heading") == heading_path:
+                # `prev.text` contient déjà le prefix; on l'enlève pour reconstituer
+                # un corps cohérent avant de refaire un chunk propre.
                 prev_text = prev.text or ""
                 prev_body = prev_text[len(prefix) :] if prev_text.startswith(prefix) else prev_text
                 merged_body = (prev_body + "\n\n" + body).strip()
@@ -119,6 +134,7 @@ def chunk_markdown(
                     metadata={**prev.metadata, "chunk_index": prev.metadata.get("chunk_index", 0)},
                 )
                 return
+
         chunk_id = _stable_id(source, heading_path, body)
         chunks.append(
             Chunk(
@@ -140,6 +156,8 @@ def chunk_markdown(
         idx = 0
 
         def flush_buf():
+            """Envoie le buffer courant comme chunk, puis le réinitialise."""
+
             nonlocal buf, buf_len, idx
             if not buf:
                 return

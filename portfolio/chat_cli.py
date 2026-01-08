@@ -19,6 +19,9 @@ from .agent import build_portfolio_agent
 def main() -> int:
     """Point d'entrée CLI."""
 
+    # Charge les variables d'environnement depuis `.env` (si présent) pour:
+    # - OPENAI_API_KEY
+    # - identifiants Upstash (si tu utilises l'outil RAG)
     load_dotenv(override=True)
 
     parser = argparse.ArgumentParser(description="Chat in the terminal with the portfolio RAG agent")
@@ -36,11 +39,14 @@ def main() -> int:
         print("OPENAI_API_KEY non défini (mets-le dans .env).")
         return 2
 
+    # Le CLI est volontairement minimal: on fait un appel par message.
+    # Si tu veux une continuité conversationnelle en CLI, tu peux ajouter
+    # `previous_response_id` comme dans Streamlit.
     agent = build_portfolio_agent(namespace=args.namespace, response_style=args.style)
 
     def run_once(user_text: str) -> None:
         """Exécute un tour de conversation et affiche la réponse."""
-
+        # Appel simple (one-shot). La continuité est gérée côté Streamlit.
         result = Runner.run_sync(agent, user_text)
         print(result.final_output)
 

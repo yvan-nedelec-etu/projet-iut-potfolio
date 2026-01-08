@@ -22,6 +22,10 @@ def main() -> int:
     parser.add_argument("--min-chars", type=int, default=200)
     args = parser.parse_args()
 
+    # Paramètres de chunking:
+    # - max_chars: taille max d'un chunk (plus petit => plus précis, mais plus de chunks)
+    # - overlap: recouvrement lors d'un découpage "brut" (paragraphe très long)
+    # - min_chars: évite d'avoir des chunks trop petits (fusion dans la même section)
     ids = index_data_dir(
         data_dir=args.data_dir,
         namespace=args.namespace,
@@ -29,6 +33,8 @@ def main() -> int:
         overlap=args.overlap,
         min_chars=args.min_chars,
     )
+    # Important: si tu modifies les fichiers Markdown dans `data/`, relance cette commande
+    # pour mettre l'index Upstash à jour.
     print(f"Indexed {len(ids)} chunks into namespace '{args.namespace}'.")
     return 0
 

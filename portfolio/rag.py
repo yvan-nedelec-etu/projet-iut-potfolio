@@ -41,9 +41,12 @@ def search_portfolio(
     - Retourne une liste vide si la requête est vide.
     """
 
+    # Sécurité: évite des appels réseau inutiles.
     if not query or not query.strip():
         return []
     idx = index or get_upstash_index()
+    # `HYBRID` combine dense + sparse: meilleur rappel sur des requêtes courtes,
+    # noms propres et listes (ex: "MAIF", "liste projets").
     results = idx.query(
         data=query,
         top_k=top_k,
@@ -77,6 +80,8 @@ def format_context(chunks: List[RetrievedChunk], *, max_items: int = 5) -> str:
         return ""
 
     # Séparateur léger entre extraits pour aider l'agent sans exposer de références.
+    # Les textes des chunks contiennent déjà le chemin de titres en première ligne
+    # (injecté par le chunking) -> ça aide énormément à répondre "liste mes projets".
     excerpts: list[str] = []
     for c in chunks[:max_items]:
         txt = (c.text or "").strip()

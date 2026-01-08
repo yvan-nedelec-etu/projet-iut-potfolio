@@ -18,6 +18,13 @@ from .rag import format_context, search_portfolio
 
 
 def _style_instructions(response_style: str) -> str:
+    """Retourne une consigne de style selon l'option UI/CLI.
+
+    Notes:
+    - On normalise des variantes (accents / synonymes) pour éviter les surprises.
+    - La sortie est une courte instruction injectée dans le prompt système.
+    """
+
     style = (response_style or "").strip().lower()
     if style in {"detaille", "detaillé", "détaillé", "long", "approfondi"}:
         return (

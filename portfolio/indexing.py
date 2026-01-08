@@ -19,7 +19,10 @@ from .chunking import Chunk, chunk_markdown_files
 
 def get_upstash_index() -> Index:
     """Construit un client Upstash Vector à partir des variables d'environnement."""
-
+    # On charge `.env` à chaque appel pour rendre le module utilisable:
+    # - en CLI
+    # - en tests
+    # - en Streamlit
     load_dotenv(override=True)
     url = os.getenv("UPSTASH_VECTOR_REST_URL")
     token = os.getenv("UPSTASH_VECTOR_REST_TOKEN")
@@ -37,6 +40,7 @@ def upsert_chunks(index: Index, chunks: Iterable[Chunk], *, namespace: str = "po
 
     vectors = [Vector(id=c.id, data=c.text, metadata=dict(c.metadata)) for c in chunks]
     # Upstash upsert returns a string status; keep the IDs so callers can delete.
+    # Les IDs sont stables (hash) -> l'upsert met à jour proprement quand un fichier change.
     index.upsert(vectors=vectors, namespace=namespace)
     return [c.id for c in chunks]
 

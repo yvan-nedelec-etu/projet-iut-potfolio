@@ -1,7 +1,11 @@
+"""Tests unitaires du module de chunking."""
+
 from portfolio.chunking import chunk_markdown
 
 
 def test_chunking_splits_by_heading_and_size():
+    """Vérifie que le chunking découpe par titres et respecte la taille max."""
+
     md = """# Expérience
 
 J'ai travaillé sur un projet de data engineering.

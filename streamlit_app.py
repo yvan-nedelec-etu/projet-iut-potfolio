@@ -149,7 +149,7 @@ def main() -> None:
 
         response_style = st.selectbox(
             "Style de réponse",
-            options=["concis", "détaillé"],
+            options=["Concis", "Détaillé"],
             index=0,
             help="Change le niveau de détails des réponses.",
         )

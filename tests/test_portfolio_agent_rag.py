@@ -1,3 +1,8 @@
+"""Test d'intégration: l'agent sait appeler un outil de retrieval.
+
+Ignoré automatiquement sans `OPENAI_API_KEY` et/ou identifiants Upstash.
+"""
+
 import os
 import time
 import uuid
@@ -17,6 +22,8 @@ load_dotenv(override=True)
 
 @pytest.mark.integration
 def test_agent_can_use_retrieval_tool():
+    """Vérifie que l'agent récupère le contexte et renvoie le token attendu."""
+
     if not os.getenv("OPENAI_API_KEY"):
         pytest.skip("OPENAI_API_KEY non défini; test agent RAG ignoré.")
     if not os.getenv("UPSTASH_VECTOR_REST_URL") or not os.getenv("UPSTASH_VECTOR_REST_TOKEN"):
@@ -40,6 +47,8 @@ def test_agent_can_use_retrieval_tool():
 
     @function_tool(name_override="retrieve_portfolio")
     def retrieve_portfolio(query: str, top_k: int = 3) -> str:
+        """Outil de test: renvoie un contexte formaté depuis un index isolé."""
+
         return format_context(search_portfolio(query, top_k=top_k, namespace=namespace, index=index))
 
     agent = Agent(

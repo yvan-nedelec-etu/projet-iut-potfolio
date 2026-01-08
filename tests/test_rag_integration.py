@@ -1,3 +1,8 @@
+"""Tests d'intégration Upstash Vector pour le RAG.
+
+Ignoré automatiquement si les identifiants Upstash ne sont pas présents.
+"""
+
 import os
 import time
 import uuid
@@ -16,6 +21,8 @@ load_dotenv(override=True)
 
 @pytest.mark.integration
 def test_upstash_index_and_query_roundtrip():
+    """Upsert un vecteur puis vérifie qu'il est retrouvable via une requête."""
+
     if not os.getenv("UPSTASH_VECTOR_REST_URL") or not os.getenv("UPSTASH_VECTOR_REST_TOKEN"):
         pytest.skip("Identifiants Upstash manquants; test d'intégration ignoré.")
 
@@ -37,7 +44,7 @@ def test_upstash_index_and_query_roundtrip():
     )
 
     try:
-        # Upstash indexing can be eventually-consistent; retry a few times.
+        # Upstash peut être eventually-consistent: on retente un peu.
         results = []
         for _ in range(10):
             results = search_portfolio(token, top_k=3, namespace=namespace, index=index)
