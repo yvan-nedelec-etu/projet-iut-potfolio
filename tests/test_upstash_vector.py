@@ -1,4 +1,6 @@
-"""Test d'intégration simple pour valider l'accès Upstash.
+"""
+
+Test d'intégration simple pour valider l'accès Upstash.
 
 Ignoré automatiquement si les identifiants Upstash manquent.
 """

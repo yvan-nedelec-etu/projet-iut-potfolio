@@ -1,4 +1,6 @@
-"""Test d'intégration: l'agent sait appeler un outil de retrieval.
+"""
+
+Test d'intégration: l'agent sait appeler un outil de retrieval.
 
 Ignoré automatiquement sans `OPENAI_API_KEY` et/ou identifiants Upstash.
 """

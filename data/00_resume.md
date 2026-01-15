@@ -21,4 +21,5 @@ Je m'appelle Yvan Nedelec. Je suis étudiant en BUT Science des Données.
 - LinkedIn : https://fr.linkedin.com/in/yvan-nedelec-40b779214
 
 ## Objectifs
-Je veux évoluer vers l’analyse de données, le machine learning ou le data engineering.
+Je veux évoluer vers l’analyse de données, le machine learning ou le data engineering. Je suis actuellement admis à l'EFREI Bordeaux dans la majeure
+Big Data et Machine Learning.

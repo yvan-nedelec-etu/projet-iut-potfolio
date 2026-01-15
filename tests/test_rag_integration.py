@@ -1,4 +1,6 @@
-"""Tests d'intégration Upstash Vector pour le RAG.
+"""
+
+Tests d'intégration Upstash Vector pour le RAG.
 
 Ignoré automatiquement si les identifiants Upstash ne sont pas présents.
 """

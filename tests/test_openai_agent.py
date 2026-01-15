@@ -1,4 +1,6 @@
-"""Test d'intégration minimal avec openai-agents.
+"""
+
+Test d'intégration minimal avec openai-agents.
 
 Ce test est ignoré automatiquement si `OPENAI_API_KEY` est manquante.
 """

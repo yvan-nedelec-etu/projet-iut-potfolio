@@ -1,9 +1,7 @@
-"""RAG helpers: retrieval from Upstash Vector and context formatting.
-
-Objectif:
-- Interroger Upstash Vector avec un texte (mode HYBRID)
+"""
+- Interroger Upstash Vector avec un texte
 - Retourner des extraits pertinents
-- Fournir un contexte "neutre" à l'agent (sans références affichables)
+- Fournir un contexte neutre à l'agent
 """
 
 from __future__ import annotations

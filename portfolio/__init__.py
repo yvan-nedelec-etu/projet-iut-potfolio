@@ -7,4 +7,7 @@ Ce package regroupe la logique "backend" du chatbot:
 - Agent: configuration openai-agents (persona + tool de retrieval).
 
 Note: l'UI Streamlit est dans `streamlit_app.py` (hors package).
+
+Cela permet d 'avoir un package et de pouvoir l'importer dans des scripts
+de test ou d'indexation, ou dans l'application Streamlit.
 """
