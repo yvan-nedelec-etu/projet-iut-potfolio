@@ -1,7 +1,11 @@
 [theme]
 base = "dark"
-primaryColor = "#7C3AED"
-backgroundColor = "#0B0F19"
-secondaryBackgroundColor = "#111827"
-textColor = "#E5E7EB"
-font = "monospace"
+# Violet vif pour les accents (boutons, liens)
+primaryColor = "#A78BFA"
+# Fond transparent (le background PNG prend le relais)
+backgroundColor = "#1a1033"
+# Sidebar et containers avec violet foncé
+secondaryBackgroundColor = "#2d1f5c"
+# Texte clair pour contraste sur fond violet
+textColor = "#F3E8FF"
+font = "sans serif"
