@@ -14,7 +14,7 @@ from typing import Iterable, List
 from dotenv import load_dotenv
 from upstash_vector import Index, Vector
 
-from .chunking import Chunk, chunk_markdown_files
+from .chunking import chunk_markdown_files
 
 
 def get_upstash_index() -> Index:

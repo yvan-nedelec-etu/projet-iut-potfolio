@@ -12,14 +12,6 @@ from .rag import format_context, search_portfolio
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-#                              CONFIGURATION
-# ═══════════════════════════════════════════════════════════════════════════════
-
-MODELE_PAR_DEFAUT = "gpt-4.1-nano"
-NAMESPACE_PAR_DEFAUT = "portfolio"
-
-
-# ═══════════════════════════════════════════════════════════════════════════════
 #                           FONCTIONS UTILITAIRES
 # ═══════════════════════════════════════════════════════════════════════════════
 
@@ -106,7 +98,7 @@ Donc TOUTES les questions concernent MOI (Yvan), peu importe la formulation :
 # ═══════════════════════════════════════════════════════════════════════════════
 
 def construire_agent_portfolio(
-    namespace: str = NAMESPACE_PAR_DEFAUT,
+    namespace: str = "portfolio",
     style_reponse: str = "concis"
 ) -> Agent:
     """
@@ -162,7 +154,7 @@ def construire_agent_portfolio(
     agent = Agent(
         name="Yvan-NEDELEC",
         instructions=_generer_instructions_agent(style_reponse),
-        model=MODELE_PAR_DEFAUT,
+        model="gpt-4.1-nano",
         model_settings=ModelSettings(temperature=0.3),  # Peu de créativité, réponses cohérentes
         tools=[rechercher_dans_portfolio],
     )

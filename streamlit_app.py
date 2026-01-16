@@ -1,14 +1,12 @@
 """
-Interface Streamlit
-Chatbot conversationnel.
+Interface Streamlit — Chatbot conversationnel portfolio.
+Sans CSS ni HTML personnalisé, uniquement les composants natifs Streamlit.
 """
 
 from __future__ import annotations
 import os
 import random
-import base64
 from datetime import datetime
-from pathlib import Path
 
 import streamlit as st
 from dotenv import load_dotenv
@@ -16,27 +14,49 @@ from agents import Runner
 from portfolio.agent import build_portfolio_agent
 from portfolio.rag import format_context, search_portfolio
 
+
 # ═══════════════════════════════════════════════════════════════════════════════
 #                                 CONSTANTES
 # ═══════════════════════════════════════════════════════════════════════════════
 
-TITRE_APP = "yvan@portfolio:~$ ./chat"
+TITRE_APP = "Portfolio Yvan NEDELEC"
 NAMESPACE = "portfolio"
-VERSION = "2026-01-15-v8"
+VERSION = "2026-01-15-v12"
 
 LIENS = {
     "github": "https://github.com/yvan-nedelec-etu",
     "linkedin": "https://www.linkedin.com/in/yvan-nedelec-40b779214/",
+    "email": "yvan.nedelec@etu.univ-poitiers.fr",
 }
+
+SUGGESTIONS = [
+    "Quels sont tes projets ?",
+    "Parle-moi de ton alternance",
+    "Quelles compétences maîtrises-tu ?",
+    "C'est quoi ton parcours ?",
+]
+
+MESSAGE_REMERCIEMENT = f"""---
+
+**Merci d'avoir discuté avec moi !** 🙏
+
+Si vous souhaitez en savoir plus ou me contacter :
+
+• 🐙 GitHub : {LIENS['github']}
+• 💼 LinkedIn : {LIENS['linkedin']}
+• 📧 Email : {LIENS['email']}
+
+---
+"""
 
 ANECDOTES = [
     "💡 J'ai appris Python en autodidacte avant de commencer mon BUT !",
-    "🎵 Je produis de la musique sur FL Studio à mes heures perdues.",
-    "🏋️ Je fais de la musculation pour garder la forme.",
-    "🚗 Je suis passionné par l'automobile, surtout les modèles anciens.",
-    "💻 Mon premier projet était un site web en PHP/JavaScript.",
-    "📊 À la MAIF, je migre des traitements SAS vers Python.",
-    "🎯 Mon objectif : devenir expert en Machine Learning ou Data Engineering.",
+    "🎵 Je produis de la musique électronique sur FL Studio à mes heures perdues.",
+    "🏋️ Je pratique la musculation régulièrement pour garder un équilibre.",
+    "🚗 Passionné d'automobile, j'apprécie particulièrement les modèles anciens.",
+    "💻 Mon premier projet était un site web complet en PHP/JavaScript.",
+    "📊 À la MAIF, je participe à la migration de traitements SAS vers Python.",
+    "🎯 Objectif : devenir expert en Machine Learning ou Data Engineering.",
 ]
 
 QUIZ = [
@@ -46,77 +66,15 @@ QUIZ = [
     {"q": "Quel outil j'utilise pour produire de la musique ?", "opts": ["Ableton", "FL Studio", "Logic Pro", "GarageBand"], "rep": 1},
 ]
 
-MESSAGE_ACCUEIL = f"""```
-> Connexion établie...
-> Terminal Yvan NEDELEC v2.0
-> Initialisation...
-```
+MESSAGE_ACCUEIL = """Bonjour, je suis **Yvan NEDELEC**.
 
-Salut ! 👋 Je suis **Yvan**, étudiant en **BUT Science des Données** et alternant **Data Analyst à la MAIF**.
+Étudiant en BUT Science des Données à l'IUT de Niort, je suis actuellement en alternance en tant que Data Analyst à la MAIF.
 
-### Ce que je peux faire :
+Posez-moi vos questions sur mon parcours, mes projets ou mes compétences.
 
-🔹 Réponds à tes questions sur mes **projets**, mon **alternance**, mes **compétences**
-🔹 Donne mes liens : **GitHub**, **LinkedIn**
-🔹 Lance un **quiz** pour tester tes connaissances sur moi
-🔹 Partage des **anecdotes** (fun fact)
-🔹 Easter eggs : `42`, `matrix`, `hello world`, `konami`
+Je peux aussi vous proposer un quiz pour tester vos connaissances sur moi ! Tapez 'quiz' pour commencer.
 
----
-*Exemples : "C'est quoi ton GitHub ?", "On fait un quiz ?", "Parle-moi de tes projets"*
-"""
 
-CSS_TERMINAL = """
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&display=swap');
-* { font-family: 'Fira Code', monospace !important; }
-
-.stApp, .main, [data-testid="stAppViewContainer"], [data-testid="stVerticalBlock"],
-[data-testid="stMainBlockContainer"], .block-container {
-    background: #0a0a0a !important;
-}
-.stApp {
-    background-image: radial-gradient(ellipse at top, #0d1a0d 0%, #0a0a0a 50%),
-        repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,255,65,0.02) 2px, rgba(0,255,65,0.02) 4px) !important;
-}
-.stBottom, [data-testid="stBottom"], [data-testid="stBottomBlockContainer"],
-.stChatInputContainer, [data-testid="stChatInput"], [data-testid="stChatInput"] > div,
-div[data-testid="stBottom"] > div {
-    background: #0a0a0a !important; border: none !important;
-}
-section[data-testid="stSidebar"] { display: none !important; }
-.stMarkdown, .stText, p, span, label, .stCaption, [data-testid="stMarkdownContainer"] p {
-    color: #00ff41 !important; text-shadow: 0 0 3px rgba(0,255,65,0.4);
-}
-h1, h2, h3, h4 {
-    color: #00ff41 !important;
-    text-shadow: 0 0 10px rgba(0,255,65,0.7), 0 0 20px rgba(0,255,65,0.4) !important;
-}
-.stChatMessage {
-    background: rgba(0,20,0,0.9) !important; border: 1px solid #00ff41 !important;
-    border-radius: 0 !important; margin: 12px 0 !important; padding: 15px !important;
-    box-shadow: 0 0 10px rgba(0,255,65,0.2);
-}
-.stChatMessage [data-testid="stMarkdownContainer"] p { margin-bottom: 8px !important; line-height: 1.6 !important; }
-.stButton > button {
-    background: transparent !important; border: 1px solid #00ff41 !important;
-    color: #00ff41 !important; border-radius: 0 !important; text-transform: uppercase;
-}
-.stButton > button:hover {
-    background: #00ff41 !important; color: #0a0a0a !important;
-    box-shadow: 0 0 20px rgba(0,255,65,0.6);
-}
-.stChatInput, .stChatInput > div, [data-testid="stChatInputTextArea"], .stChatInput textarea,
-.stChatInput input {
-    background: #0a0a0a !important; border: 1px solid #00ff41 !important;
-    border-radius: 0 !important; color: #00ff41 !important; caret-color: #00ff41 !important;
-}
-.stChatInput input::placeholder, .stChatInput textarea::placeholder { color: rgba(0,255,65,0.5) !important; }
-a { color: #00ff41 !important; }
-#MainMenu, footer, [data-testid="stToolbar"] { visibility: hidden; }
-header[data-testid="stHeader"] { display: none !important; }
-.stChatMessage img { border-radius: 4px !important; border: 1px solid #00ff41 !important; }
-</style>
 """
 
 
@@ -124,17 +82,15 @@ header[data-testid="stHeader"] { display: none !important; }
 #                              FONCTIONS UTILITAIRES
 # ═══════════════════════════════════════════════════════════════════════════════
 
-def charger_avatar() -> str | None:
-    """Charge l'avatar PNG encodé en base64."""
-    chemin = Path("assets/avatar.png")
-    return base64.b64encode(chemin.read_bytes()).decode() if chemin.exists() else None
-
-
 def initialiser_session() -> None:
     """Initialise les variables de session Streamlit."""
     defauts = {
-        "version": None, "previous_response_id": None, "messages": [],
-        "quiz_actif": False, "quiz_index": 0, "quiz_score": 0,
+        "version": None,
+        "previous_response_id": None,
+        "messages": [],
+        "quiz_actif": False,
+        "quiz_index": 0,
+        "quiz_score": 0,
         "stats": {"questions": 0, "debut": datetime.now()},
     }
     for cle, val in defauts.items():
@@ -151,8 +107,11 @@ def obtenir_stats() -> str:
     """Retourne les statistiques de conversation formatées."""
     stats = st.session_state.stats
     duree = datetime.now() - stats["debut"]
-    mins, secs = int(duree.total_seconds() // 60), int(duree.total_seconds() % 60)
-    return f"💬 {len(st.session_state.messages)} messages • ❓ {stats['questions']} questions • ⏱️ {mins}m {secs}s"
+    mins = int(duree.total_seconds() // 60)
+    secs = int(duree.total_seconds() % 60)
+    nb_messages = len(st.session_state.messages)
+    nb_questions = stats["questions"]
+    return f"💬 {nb_messages} messages • ❓ {nb_questions} questions • ⏱️ {mins}m {secs}s"
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -169,10 +128,13 @@ def gerer_quiz(texte: str) -> str | None:
     q = QUIZ[idx]
     reponse = None
     
+    # Chercher un numéro dans la réponse
     for i, num in enumerate(["1", "2", "3", "4"]):
         if num in texte:
             reponse = i
             break
+    
+    # Sinon chercher le texte de l'option
     if reponse is None:
         for i, opt in enumerate(q["opts"]):
             if opt.lower() in texte:
@@ -180,24 +142,38 @@ def gerer_quiz(texte: str) -> str | None:
                 break
     
     if reponse is None:
-        return f"🤔 Réponds avec **1**, **2**, **3** ou **4** !\n\n**Rappel :** {q['q']}"
+        return f"💬 *Répondez avec* **1**, **2**, **3** *ou* **4**\n\n**Rappel :** *{q['q']}*"
     
+    # Vérifier si la réponse est correcte
     correct = reponse == q["rep"]
     if correct:
         st.session_state.quiz_score += 1
-    feedback = "✅ **Bonne réponse !**" if correct else f"❌ **Raté !** C'était : **{q['opts'][q['rep']]}**"
+    
+    feedback = "✅ **Correct !**" if correct else f"❌ **Incorrect** — La bonne réponse était : *{q['opts'][q['rep']]}*"
     
     st.session_state.quiz_index += 1
     
+    # Quiz terminé ?
     if st.session_state.quiz_index >= len(QUIZ):
         st.session_state.quiz_actif = False
-        score, total = st.session_state.quiz_score, len(QUIZ)
-        emoji = "🏆" if score == total else "🎉" if score >= 3 else "👍" if score >= 2 else "💪"
-        return f"{feedback}\n\n---\n\n{emoji} **Quiz terminé ! Score : {score}/{total}**\n\n*Tape 'quiz' pour rejouer !*"
+        score = st.session_state.quiz_score
+        total = len(QUIZ)
+        
+        if score == total:
+            appreciation = "🏆 **Parfait !** Vous me connaissez par cœur !"
+        elif score >= 3:
+            appreciation = "🎉 **Excellent !** Très bonne connaissance de mon profil."
+        elif score >= 2:
+            appreciation = "👍 **Bien joué !** Vous avez retenu l'essentiel."
+        else:
+            appreciation = "💪 **Continuez à explorer** mon portfolio pour en apprendre plus !"
+        
+        return f"{feedback}\n\n---\n\n**🎯 Quiz terminé**\n\n**Score final : {score}/{total}**\n\n{appreciation}\n\n---\n*Tapez 'quiz' pour rejouer*"
     
-    nq = QUIZ[st.session_state.quiz_index]
-    opts = "\n".join([f"**{i+1}.** {o}" for i, o in enumerate(nq["opts"])])
-    return f"{feedback}\n\n---\n\n**Question {st.session_state.quiz_index + 1}/{len(QUIZ)} :**\n{nq['q']}\n\n{opts}"
+    # Question suivante
+    question_suivante = QUIZ[st.session_state.quiz_index]
+    options = "\n".join([f"  **{i+1}.** {o}" for i, o in enumerate(question_suivante["opts"])])
+    return f"{feedback}\n\n---\n\n**Question {st.session_state.quiz_index + 1}/{len(QUIZ)}**\n\n*{question_suivante['q']}*\n\n{options}"
 
 
 def detecter_commande(texte: str) -> str | None:
@@ -206,39 +182,52 @@ def detecter_commande(texte: str) -> str | None:
     
     # Easter eggs
     if "42" in t:
-        return "🌌 **42** — La réponse à la grande question sur la vie, l'univers et le reste !"
-    if "matrix" in t:
-        return "💊 **Pilule rouge** ou **bleue** ?\n\n```\nWake up, Neo...\nThe Matrix has you...\n```"
-    if "hello world" in t:
-        return "```python\nprint('Hello, World!')\n```\n\n👨‍💻 Mon premier hello world était en PHP en 2020."
-    if "konami" in t:
-        return "🎮 **↑ ↑ ↓ ↓ ← → ← → B A** — Tu connais le Konami Code !"
+        return "🌌 **42** — *La réponse à la grande question sur la vie, l'univers et le reste.*"
     
-    # Commandes
+    if "matrix" in t:
+        return "💊 *Wake up, Neo... The Matrix has you.* — Pilule rouge ou bleue ?"
+    
+    if "hello world" in t:
+        return "👨‍💻 `print('Hello, World!')` — Mon tout premier programme était en PHP, en 2020."
+    
+    if "konami" in t:
+        return "🎮 **↑ ↑ ↓ ↓ ← → ← → B A** — Le légendaire Konami Code !"
+    
+    # Commandes utilitaires
     if t in ["help", "aide", "?"]:
         return MESSAGE_ACCUEIL
+    
     if any(x in t for x in ["github", "git", "repo"]):
-        return f"🐙 **Mon GitHub :** [{LIENS['github']}]({LIENS['github']})"
+        return f"🐙 **GitHub** → {LIENS['github']}"
+    
     if any(x in t for x in ["linkedin", "profil pro"]):
-        return f"💼 **Mon LinkedIn :** [{LIENS['linkedin']}]({LIENS['linkedin']})"
+        return f"💼 **LinkedIn** → {LIENS['linkedin']}"
+    
     if any(x in t for x in ["liens", "réseaux", "contact"]):
-        return f"🔗 **Mes liens :**\n\n- 🐙 [{LIENS['github']}]({LIENS['github']})\n- 💼 [{LIENS['linkedin']}]({LIENS['linkedin']})"
+        return f"**🔗 Mes réseaux professionnels**\n\n• 🐙 GitHub : {LIENS['github']}\n• 💼 LinkedIn : {LIENS['linkedin']}"
+    
     if any(x in t for x in ["fun fact", "anecdote", "truc marrant"]):
-        return f"🎲 **Fun fact :**\n\n{random.choice(ANECDOTES)}"
+        return f"**✨ Le saviez-vous ?**\n\n{random.choice(ANECDOTES)}"
+    
     if any(x in t for x in ["stats", "statistiques"]):
-        return f"📊 **Stats :**\n\n{obtenir_stats()}"
+        return f"**📈 Statistiques de session**\n\n{obtenir_stats()}"
+    
     if any(x in t for x in ["reset", "recommencer", "effacer"]):
         st.session_state.previous_response_id = None
         st.session_state.messages = [{"role": "assistant", "content": MESSAGE_ACCUEIL}]
         st.session_state.stats = {"questions": 0, "debut": datetime.now()}
         st.session_state.quiz_actif = False
         st.rerun()
-    if any(x in t for x in ["quiz", "quizz", "teste"]):
-        st.session_state.quiz_actif, st.session_state.quiz_index, st.session_state.quiz_score = True, 0, 0
-        q = QUIZ[0]
-        opts = "\n".join([f"**{i+1}.** {o}" for i, o in enumerate(q["opts"])])
-        return f"🎮 **Quiz lancé !**\n\n**Question 1/{len(QUIZ)} :**\n{q['q']}\n\n{opts}\n\n*Réponds avec 1, 2, 3 ou 4*"
     
+    if any(x in t for x in ["quiz", "quizz", "teste"]):
+        st.session_state.quiz_actif = True
+        st.session_state.quiz_index = 0
+        st.session_state.quiz_score = 0
+        q = QUIZ[0]
+        options = "\n".join([f"  **{i+1}.** {o}" for i, o in enumerate(q["opts"])])
+        return f"🎯 **Quiz lancé !**\n\n---\n\n**Question 1/{len(QUIZ)}**\n\n*{q['q']}*\n\n{options}\n\n---\n💬 *Répondez avec 1, 2, 3 ou 4*"
+    
+    # Quiz en cours
     if st.session_state.get("quiz_actif"):
         return gerer_quiz(t)
     
@@ -250,7 +239,9 @@ def injecter_contexte_rag(texte: str) -> str:
     try:
         chunks = search_portfolio(texte, top_k=8, namespace=NAMESPACE)
         ctx = format_context(chunks, max_items=8)
-        return f"Infos sur moi:\n{ctx}\n\nQuestion:\n{texte}" if ctx.strip() else texte
+        if ctx.strip():
+            return f"Infos sur moi:\n{ctx}\n\nQuestion:\n{texte}"
+        return texte
     except Exception:
         return texte
 
@@ -263,45 +254,138 @@ def main() -> None:
     """Point d'entrée principal de l'application."""
     load_dotenv(override=True)
     
-    st.set_page_config(page_title=TITRE_APP, page_icon="💻", layout="centered")
+    st.set_page_config(
+        page_title="Portfolio Yvan NEDELEC",
+        page_icon="✨",
+        layout="centered"
+    )
+    
+    # CSS style Gemini Pro - minimaliste et moderne
+    st.markdown("""
+        <style>
+        /* Fond principal */
+        .stApp { background: linear-gradient(180deg, #1f1f1f 0%, #171717 100%); }
+        
+        /* Messages chat style Gemini */
+        .stChatMessage {
+            background: transparent !important;
+            border: none !important;
+            padding: 1rem 0 !important;
+        }
+        [data-testid="stChatMessageContent"] {
+            background: #2d2d2d !important;
+            border-radius: 18px !important;
+            padding: 16px 20px !important;
+            border: 1px solid #3d3d3d !important;
+        }
+        
+        /* Input style Gemini */
+        .stChatInput > div {
+            background: #2d2d2d !important;
+            border-radius: 24px !important;
+            border: 1px solid #3d3d3d !important;
+        }
+        .stChatInput input {
+            background: transparent !important;
+        }
+        
+        /* Titre épuré */
+        h1 {
+            font-weight: 400 !important;
+            font-size: 1.8rem !important;
+            color: #e3e3e3 !important;
+        }
+        
+        /* Caption subtle */
+        .stCaption {
+            color: #9aa0a6 !important;
+            font-size: 0.85rem !important;
+        }
+        
+        /* Liens style Gemini */
+        a { color: #8ab4f8 !important; }
+        a:hover { color: #aecbfa !important; }
+        
+        /* Hide Streamlit branding */
+        #MainMenu, footer, header { visibility: hidden; }
+        </style>
+    """, unsafe_allow_html=True)
+    
     initialiser_session()
-    st.markdown(CSS_TERMINAL, unsafe_allow_html=True)
     
-    st.markdown(f"# {TITRE_APP}")
-    st.markdown("`[STATUS: ONLINE] [MODE: conversational]`")
+    # Titre de l'application
+    st.title(TITRE_APP)
+    st.caption("BUT Science des Données · Alternant Data Analyst MAIF")
     
+    # Vérification de la clé API
     if not os.getenv("OPENAI_API_KEY"):
-        st.error("OPENAI_API_KEY manquant dans `.env`")
+        st.error("⚠️ OPENAI_API_KEY manquant dans le fichier .env")
         st.stop()
     
+    # Construction de l'agent
     agent = build_portfolio_agent(namespace=NAMESPACE, style_reponse="concis")
-    avatar_b64 = charger_avatar()
-    avatar_bot = f"data:image/png;base64,{avatar_b64}" if avatar_b64 else "🤖"
     
+    # Affichage de l'historique des messages
     for msg in st.session_state.messages:
-        with st.chat_message(msg["role"], avatar=avatar_bot if msg["role"] == "assistant" else "💻"):
+        with st.chat_message(msg["role"]):
             st.markdown(msg["content"])
     
-    if texte := st.chat_input("Pose-moi une question, lance un quiz, demande mes liens..."):
-        st.session_state.stats["questions"] += 1
+    # Message de remerciement après 5 échanges
+    nb_questions = st.session_state.stats["questions"]
+    if nb_questions >= 5 and nb_questions % 5 == 0:
+        st.markdown(MESSAGE_REMERCIEMENT)
+    
+    # Suggestions de questions (si peu de messages)
+    if len(st.session_state.messages) <= 2:
+        st.markdown("**💡 Suggestions :**")
+        cols = st.columns(2)
+        for i, suggestion in enumerate(SUGGESTIONS):
+            if cols[i % 2].button(suggestion, key=f"sugg_{i}"):
+                st.session_state.suggestion_cliquee = suggestion
+                st.rerun()
+    
+    # Zone de saisie
+    texte = st.chat_input("Pose-moi une question, lance un quiz, demande mes liens...")
+    
+    # Si suggestion cliquée
+    if st.session_state.get("suggestion_cliquee"):
+        texte = st.session_state.suggestion_cliquee
+        st.session_state.suggestion_cliquee = None
+    
+    if texte:
+        # Ajouter le message utilisateur
         st.session_state.messages.append({"role": "user", "content": texte})
-        
-        with st.chat_message("user", avatar="💻"):
+        with st.chat_message("user"):
             st.markdown(texte)
         
-        if reponse := detecter_commande(texte):
-            with st.chat_message("assistant", avatar=avatar_bot):
-                st.markdown(reponse)
-            st.session_state.messages.append({"role": "assistant", "content": reponse})
+        # Vérifier si c'est une commande spéciale (quiz, liens, easter eggs)
+        reponse_commande = detecter_commande(texte)
+        
+        if reponse_commande:
+            # Les commandes spéciales ne comptent pas dans les stats
+            with st.chat_message("assistant"):
+                st.markdown(reponse_commande)
+            st.session_state.messages.append({"role": "assistant", "content": reponse_commande})
             st.rerun()
         
-        with st.chat_message("assistant", avatar=avatar_bot):
-            with st.spinner("> processing..."):
+        # Question réelle → incrémenter les stats
+        st.session_state.stats["questions"] += 1
+        
+        # Utiliser l'agent IA
+        with st.chat_message("assistant"):
+            with st.spinner("Je réfléchis..."):
+                texte_enrichi = injecter_contexte_rag(texte)
                 result = Runner.run_sync(
-                    agent, injecter_contexte_rag(texte),
-                    previous_response_id=st.session_state.previous_response_id, max_turns=6
+                    agent,
+                    texte_enrichi,
+                    previous_response_id=st.session_state.previous_response_id,
+                    max_turns=6
                 )
-            reponse = (result.final_output or "").strip() or "Hmm, je n'ai pas compris. Tape `help` pour voir ce que je peux faire !"
+            
+            reponse = (result.final_output or "").strip()
+            if not reponse:
+                reponse = "Hmm, je n'ai pas compris. Tape 'help' pour voir ce que je peux faire !"
+            
             st.markdown(reponse)
         
         st.session_state.previous_response_id = result.last_response_id
