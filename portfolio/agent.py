@@ -40,7 +40,7 @@ def _generer_instructions_agent(style: str) -> str:
     """
     Génère toutes les instructions système de l'agent.
     
-    C'est le "cerveau" de l'agent : ces règles définissent comment il doit
+    C'est le cerveau de l'agent : ces règles définissent comment il doit
     se comporter et répondre aux questions.
     
     Args:

@@ -132,7 +132,7 @@ def decouper_tous_les_fichiers(dossier: str = "data", max_chars: int = 1000) -> 
     return chunks
 
 
-# Alias pour compatibilité
+# Alias 
 load_markdown_files = charger_fichiers_markdown
 chunk_markdown = decouper_markdown
 chunk_markdown_files = decouper_tous_les_fichiers

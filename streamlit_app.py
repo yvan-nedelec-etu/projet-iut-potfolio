@@ -63,7 +63,7 @@ QUIZ = [
     {"q": "Dans quelle entreprise je fais mon alternance ?", "opts": ["AXA", "MAIF", "Groupama", "Allianz"], "rep": 1},
     {"q": "Quel langage j'utilise le plus en data ?", "opts": ["Java", "C++", "Python", "Ruby"], "rep": 2},
     {"q": "Quelle formation je suis actuellement ?", "opts": ["Master IA", "BUT Science des Données", "École d'ingénieur", "Licence Info"], "rep": 1},
-    {"q": "Quel outil j'utilise pour produire de la musique ?", "opts": ["Ableton", "FL Studio", "Logic Pro", "GarageBand"], "rep": 1},
+    {"q": "Quel outil j'utilise pour coder ?", "opts": ["IntelliJ", "VS Code", "PyCharm", "Visual Studio"], "rep": 2},
 ]
 
 MESSAGE_ACCUEIL = """Bonjour, je suis **Yvan NEDELEC**.
