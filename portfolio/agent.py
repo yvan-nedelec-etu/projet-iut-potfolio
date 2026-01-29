@@ -11,19 +11,16 @@ from agents import Agent, ModelSettings, function_tool
 from .rag import format_context, search_portfolio
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-#                           FONCTIONS UTILITAIRES
-# ═══════════════════════════════════════════════════════════════════════════════
+# Fonctions utilitaires
 
 def _generer_instructions_style(style: str) -> str:
-    """
-    Génère les instructions de style pour les réponses.
-    
+    """Génère les instructions de style pour les réponses.
+
     Args:
-        style: "concis" pour des réponses courtes, "detaille" pour des réponses longues
-    
+        style (str): "concis" pour des réponses courtes, "detaille" pour des réponses longues.
+
     Returns:
-        Instructions de style à injecter dans le prompt
+        str: Instructions de style à injecter dans le prompt.
     """
     style_normalise = (style or "").strip().lower()
     
@@ -37,17 +34,13 @@ def _generer_instructions_style(style: str) -> str:
 
 
 def _generer_instructions_agent(style: str) -> str:
-    """
-    Génère toutes les instructions système de l'agent.
-    
-    C'est le cerveau de l'agent : ces règles définissent comment il doit
-    se comporter et répondre aux questions.
-    
+    """Génère toutes les instructions système de l'agent.
+
     Args:
-        style: Style de réponse souhaité
-    
+        style (str): Style de réponse souhaité.
+
     Returns:
-        Instructions complètes pour l'agent
+        str: Instructions complètes pour l'agent.
     """
     instructions = f"""
 Tu ES Yvan NEDELEC. Tu parles TOUJOURS à la première personne (je, mon, mes).
@@ -93,63 +86,48 @@ Donc TOUTES les questions concernent MOI (Yvan), peu importe la formulation :
     return instructions.strip()
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-#                           FONCTION PRINCIPALE
-# ═══════════════════════════════════════════════════════════════════════════════
+# Fonction principale
 
 def construire_agent_portfolio(
     namespace: str = "portfolio",
     style_reponse: str = "concis"
 ) -> Agent:
-    """
-    Construit et retourne l'agent RAG du portfolio.
-    
-    L'agent utilise un outil (retrieve_portfolio) pour chercher des infos
-    dans la base vectorielle Upstash, puis génère une réponse naturelle.
-    
+    """Construit et retourne l'agent RAG du portfolio.
+
+    L'agent utilise un outil pour chercher des infos, puis répond en "je".
+
     Args:
-        namespace: Espace de noms Upstash où sont stockées les données
-        style_reponse: "concis" ou "detaille"
-    
+        namespace (str): Espace de noms Upstash où sont stockées les données.
+        style_reponse (str): "concis" ou "detaille".
+
     Returns:
-        Agent configuré et prêt à l'emploi
-    
+        Agent: Agent configuré et prêt à l'emploi.
+
     Exemple:
         >>> agent = construire_agent_portfolio(style_reponse="detaille")
         >>> # Puis utiliser avec Runner.run_sync(agent, "question")
     """
     
-    # Définition de l'outil de recherche RAG
-    # Le décorateur @function_tool transforme cette fonction en "outil" utilisable par l'agent
+    # Outil de recherche RAG exposé à l'agent
     @function_tool(name_override="retrieve_portfolio")
     def rechercher_dans_portfolio(requete: str, nb_resultats: int = 5) -> str:
-        """
-        Recherche des informations sur Yvan dans la base de données.
-        
-        Utilise cette fonction pour toute question concernant :
-        - L'identité et le profil
-        - Les études et la formation
-        - L'alternance et l'expérience pro
-        - Les compétences techniques
-        - Les projets réalisés
-        - Les centres d'intérêt et passions
-        - Les coordonnées (GitHub, LinkedIn)
-        
+        """Recherche des informations pertinentes sur moi.
+
         Args:
-            requete: La question ou les mots-clés à rechercher
-            nb_resultats: Nombre de résultats à retourner (défaut: 5)
-        
+            requete (str): Question ou mots-clés à rechercher.
+            nb_resultats (int): Nombre de résultats à retourner.
+
         Returns:
-            Texte contenant les informations trouvées
+            str: Contexte textuel prêt à être injecté dans le prompt.
         """
         # Recherche dans Upstash Vector
         chunks = search_portfolio(requete, top_k=nb_resultats, namespace=namespace)
-        
+
         # Formatage du contexte pour l'agent
         contexte = format_context(chunks)
-        
+
         return contexte if contexte else "Aucune information trouvée."
-    
+
     # Création de l'agent avec ses paramètres
     agent = Agent(
         name="Yvan-NEDELEC",
@@ -158,7 +136,7 @@ def construire_agent_portfolio(
         model_settings=ModelSettings(temperature=0.3),  # Peu de créativité, réponses cohérentes
         tools=[rechercher_dans_portfolio],
     )
-    
+
     return agent
 
 

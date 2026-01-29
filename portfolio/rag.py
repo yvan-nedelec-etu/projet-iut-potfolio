@@ -7,7 +7,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import List
+from typing import Iterable, List
 
 from upstash_vector import Index
 from upstash_vector.types import QueryMode
@@ -17,7 +17,14 @@ from .indexing import get_upstash_index
 
 @dataclass(frozen=True)
 class RetrievedChunk:
-    """Résultat de recherche vectorielle (chunk)."""
+    """Résultat de recherche vectorielle.
+
+    Args:
+        id (str): Identifiant du chunk.
+        score (float): Score de pertinence.
+        text (str): Texte du chunk.
+        metadata (dict): Métadonnées associées.
+    """
 
     id: str
     score: float
@@ -34,17 +41,21 @@ def search_portfolio(
 ) -> List[RetrievedChunk]:
     """Recherche des chunks pertinents pour une requête.
 
-    Notes:
-    - Utilise `QueryMode.HYBRID` (dense+sparse) pour coller au setup conseillé.
-    - Retourne une liste vide si la requête est vide.
-    """
+    Args:
+        query (str): Texte de recherche.
+        top_k (int): Nombre maximal de résultats.
+        namespace (str): Namespace Upstash.
+        index (Index | None): Index Upstash optionnel.
 
-    # Sécurité: évite des appels réseau inutiles.
-    if not query or not query.strip():
+    Returns:
+        list[RetrievedChunk]: Liste des chunks pertinents.
+    """
+    if est_requete_vide(query):
         return []
+
     idx = index or get_upstash_index()
-    # `HYBRID` combine dense + sparse: meilleur rappel sur des requêtes courtes,
-    # noms propres et listes (ex: "MAIF", "liste projets").
+
+    # Mode hybride = dense + sparse, pratique pour les noms propres et requêtes courtes.
     results = idx.query(
         data=query,
         top_k=top_k,
@@ -53,9 +64,55 @@ def search_portfolio(
         namespace=namespace,
         query_mode=QueryMode.HYBRID,
     )
-    out: list[RetrievedChunk] = []
+    return convertir_resultats(results)
+
+
+def format_context(chunks: List[RetrievedChunk], *, max_items: int = 5) -> str:
+    """Formate un contexte compact pour l'agent.
+
+    Args:
+        chunks (list[RetrievedChunk]): Chunks à formatter.
+        max_items (int): Limite du nombre d'extraits.
+
+    Returns:
+        str: Contexte prêt à être injecté dans le prompt.
+    """
+    if not chunks:
+        return ""
+
+    # On garde le texte brut et on sépare légèrement les extraits.
+    extraits = [
+        (c.text or "").strip()
+        for c in chunks[:max_items]
+        if (c.text or "").strip()
+    ]
+    return "\n\n---\n\n".join(extraits)
+
+
+def est_requete_vide(query: str) -> bool:
+    """Vérifie si une requête est vide ou composée d'espaces.
+
+    Args:
+        query (str): Texte fourni par l'utilisateur.
+
+    Returns:
+        bool: True si la requête est vide, sinon False.
+    """
+    return not query or not query.strip()
+
+
+def convertir_resultats(results: Iterable) -> List[RetrievedChunk]:
+    """Convertit les résultats Upstash en objets `RetrievedChunk`.
+
+    Args:
+        results (Iterable): Résultats bruts de la recherche Upstash.
+
+    Returns:
+        list[RetrievedChunk]: Résultats normalisés.
+    """
+    chunks: list[RetrievedChunk] = []
     for r in results:
-        out.append(
+        chunks.append(
             RetrievedChunk(
                 id=r.id,
                 score=r.score,
@@ -63,26 +120,4 @@ def search_portfolio(
                 metadata=r.metadata or {},
             )
         )
-    return out
-
-
-def format_context(chunks: List[RetrievedChunk], *, max_items: int = 5) -> str:
-    """Formate un contexte compact pour l'agent.
-
-    Important:
-    - On n'inclut volontairement PAS les références (source/heading/score)
-      pour éviter que l'agent les répète dans sa réponse.
-    """
-
-    if not chunks:
-        return ""
-
-    # Séparateur léger entre extraits pour aider l'agent sans exposer de références.
-    # Les textes des chunks contiennent déjà le chemin de titres en première ligne
-    # (injecté par le chunking) -> ça aide énormément à répondre "liste mes projets".
-    excerpts: list[str] = []
-    for c in chunks[:max_items]:
-        txt = (c.text or "").strip()
-        if txt:
-            excerpts.append(txt)
-    return "\n\n---\n\n".join(excerpts)
+    return chunks

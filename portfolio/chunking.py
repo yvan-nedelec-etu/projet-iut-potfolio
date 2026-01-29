@@ -13,50 +13,47 @@ from pathlib import Path
 
 
 def charger_fichiers_markdown(dossier: str = "data") -> list[Path]:
-    """
-    Récupère tous les fichiers Markdown d'un dossier.
+    """Récupère tous les fichiers Markdown d'un dossier.
 
     Args:
-        dossier: Chemin vers le dossier contenant les fichiers .md.
+        dossier (str): Chemin vers le dossier contenant les fichiers .md.
 
     Returns:
-        Liste triée des chemins vers les fichiers trouvés.
+        list[Path]: Liste triée des chemins vers les fichiers trouvés.
     """
     return sorted(Path(dossier).rglob("*.md"))
 
 
 def generer_id(source: str, titre: str, index: int) -> str:
-    """
-    Génère un identifiant unique pour un chunk.
+    """Génère un identifiant unique pour un chunk.
 
     Args:
-        source: Chemin du fichier source.
-        titre: Titre de la section.
-        index: Numéro du chunk dans la section.
+        source (str): Chemin du fichier source.
+        titre (str): Titre de la section.
+        index (int): Numéro du chunk dans la section.
 
     Returns:
-        Identifiant de 20 caractères.
+        str: Identifiant de 20 caractères.
     """
     texte = f"{source}|{titre}|{index}"
     return hashlib.sha1(texte.encode()).hexdigest()[:20]
 
 
 def decouper_markdown(texte: str, source: str, max_chars: int = 1000) -> list[dict]:
-    """
-    Découpe un document Markdown en chunks.
+    """Découpe un document Markdown en chunks.
 
     Args:
-        texte: Contenu du fichier Markdown.
-        source: Chemin relatif du fichier.
-        max_chars: Taille maximale d'un chunk.
+        texte (str): Contenu du fichier Markdown.
+        source (str): Chemin relatif du fichier.
+        max_chars (int): Taille maximale d'un chunk.
 
     Returns:
-        Liste de dictionnaires avec id, text et metadata.
+        list[dict]: Liste de dictionnaires avec id, text et metadata.
     """
     lignes = texte.splitlines()
     regex_titre = re.compile(r"^(#{1,6})\s+(.*)$")
     
-    # Extraction des sections
+    # On reconstruit les sections à partir des titres Markdown
     titres: list[str] = []
     buffer: list[str] = []
     sections: list[tuple[str, str]] = []
@@ -77,7 +74,7 @@ def decouper_markdown(texte: str, source: str, max_chars: int = 1000) -> list[di
         chemin = " > ".join(titres) if titres else "Introduction"
         sections.append((chemin, "\n".join(buffer).strip()))
 
-    # Création des chunks
+    # On crée des chunks en respectant la taille max
     chunks: list[dict] = []
     
     for chemin_titre, contenu in sections:
@@ -111,15 +108,14 @@ def decouper_markdown(texte: str, source: str, max_chars: int = 1000) -> list[di
 
 
 def decouper_tous_les_fichiers(dossier: str = "data", max_chars: int = 1000) -> list[dict]:
-    """
-    Découpe tous les fichiers Markdown d'un dossier.
+    """Découpe tous les fichiers Markdown d'un dossier.
 
     Args:
-        dossier: Chemin vers le dossier racine.
-        max_chars: Taille maximale d'un chunk.
+        dossier (str): Chemin vers le dossier racine.
+        max_chars (int): Taille maximale d'un chunk.
 
     Returns:
-        Liste de tous les chunks (dictionnaires).
+        list[dict]: Liste de tous les chunks (dictionnaires).
     """
     base = Path(dossier)
     chunks: list[dict] = []
@@ -132,7 +128,7 @@ def decouper_tous_les_fichiers(dossier: str = "data", max_chars: int = 1000) -> 
     return chunks
 
 
-# Alias 
+# Alias
 load_markdown_files = charger_fichiers_markdown
 chunk_markdown = decouper_markdown
 chunk_markdown_files = decouper_tous_les_fichiers

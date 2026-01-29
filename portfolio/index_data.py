@@ -11,30 +11,38 @@ import argparse
 from .indexing import index_data_dir
 
 
-def main() -> int:
-    """Point d'entrée CLI."""
+def construire_parser() -> argparse.ArgumentParser:
+    """Construit le parser d'arguments.
 
-    parser = argparse.ArgumentParser(description="Chunk and index portfolio markdown files into Upstash Vector")
+    Returns:
+        argparse.ArgumentParser: Parser configuré pour la CLI.
+    """
+    parser = argparse.ArgumentParser(
+        description="Chunk and index portfolio markdown files into Upstash Vector"
+    )
     parser.add_argument("--data-dir", default="data")
     parser.add_argument("--namespace", default="portfolio")
     parser.add_argument("--max-chars", type=int, default=1000)
-    parser.add_argument("--overlap", type=int, default=120)
-    parser.add_argument("--min-chars", type=int, default=200)
+    return parser
+
+
+def main() -> int:
+    """Point d'entrée CLI.
+
+    Returns:
+        int: Code de sortie.
+    """
+    parser = construire_parser()
     args = parser.parse_args()
 
-    # Paramètres de chunking:
-    # - max_chars: taille max d'un chunk (plus petit => plus précis, mais plus de chunks)
-    # - overlap: recouvrement lors d'un découpage "brut" (paragraphe très long)
-    # - min_chars: évite d'avoir des chunks trop petits (fusion dans la même section)
+    # max_chars : taille max d'un chunk (plus petit = plus précis, mais plus de chunks)
     ids = index_data_dir(
         data_dir=args.data_dir,
         namespace=args.namespace,
         max_chars=args.max_chars,
-        overlap=args.overlap,
-        min_chars=args.min_chars,
     )
-    # Important: si tu modifies les fichiers Markdown dans `data/`, relance cette commande
-    # pour mettre l'index Upstash à jour.
+
+    # Si relance de data, relancer cette commande pour mettre l'index à jour.
     print(f"Indexed {len(ids)} chunks into namespace '{args.namespace}'.")
     return 0
 
